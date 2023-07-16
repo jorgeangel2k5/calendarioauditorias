@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <head>
+            <title>Calendario con Sucursales</title>
+            <style>
+                table {
+                    border-collapse: collapse;
+                }
+        
+                table, th, td {
+                    border: 1px solid black;
+                    padding: 5px;
+                }
+            </style>
+        </head>
+        <body>
+            <h2>Calendario con Sucursales</h2>
+        
+            <label for="mes">Ingrese el mes (1-12):</label>
+            <input type="number" id="mes" min="1" max="12">
+            <button onclick="generarCalendario()">Generar Calendario</button>
+            <button onclick="descargarExcel()">Descargar Excel</button>
+        
+            <br><br>
+        
+            <table id="calendario">
+                <thead>
+                    <tr>
+                        <th>Lun</th>
+                        <th>Mar</th>
+                        <th>Mié</th>
+                        <th>Jue</th>
+                        <th>Vie</th>
+                        <th>Sáb</th>
+                        <th>Dom</th>
+                    </tr>
+                </thead>
+                <tbody id="calendario-body">
+                </tbody>
+            </table>
+        
+            <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+            <script>
+                var sucursales = [
+                    "Avellaneda", "Chacabuco", "San Martin", "Tafi Viejo",
+                    "9 de Julio", "Aconquija", "Central", "Corrientes",
+                    "Junin", "Maipu", "Mayorista", "Bar Maipu"
+                ];
+        
+                var calendarioData = [];
+        
+                function generarCalendario() {
+                    var mesInput = document.getElementById("mes");
+                    var mes = parseInt(mesInput.value);
+        
+                    var calendarioBody = document.getElementById("calendario-body");
+                    calendarioBody.innerHTML = "";
+        
+                    var fecha = new Date();
+                    fecha.setMonth(mes - 1);
+                    fecha.setDate(1);
+        
+                    var fila = document.createElement("tr");
+        
+                    // Rellenar días vacíos antes del primer día del mes
+                    for (var i = 1; i < fecha.getDay(); i++) {
+                        var celdaVacia = document.createElement("td");
+                        fila.appendChild(celdaVacia);
+                    }
+        
+                    var sucursalesMes = duplicarSucursalesMes();
+        
+                    while (fecha.getMonth() === mes - 1) {
+                        var celda = document.createElement("td");
+                        var diaSemana = fecha.getDay();
+                        var diaMes = fecha.getDate();
+        
+                        // Mostrar las sucursales correspondientes al día de la semana
+                        if (sucursalesMes.length > 0) {
+                            var sucursal = sucursalesMes.shift();
+                            celda.textContent = diaMes + " - " + sucursal;
+                        } else {
+                            celda.textContent = diaMes;
+                        }
+        
+                        fila.appendChild(celda);
+        
+                        if (diaSemana === 0) {
+                            calendarioBody.appendChild(fila);
+                            fila = document.createElement("tr");
+                        }
+        
+                        fecha.setDate(fecha.getDate() + 1);
+                    }
+        
+                    // Rellenar días vacíos después del último día del mes
+                    for (var i = fecha.getDay(); i < 7; i++) {
+                        var celdaVacia = document.createElement("td");
+                        fila.appendChild(celdaVacia);
+                    }
+        
+                    calendarioBody.appendChild(fila);
+        
+                    // Guardar datos del calendario
+                    calendarioData = Array.from(calendarioBody.getElementsByTagName("td"), function(td) {
+                        return td.textContent;
+                    });
+                }
+        
+                function duplicarSucursalesMes() {
+                    var sucursalesAleatorias = [];
+        
+                    while (sucursalesAleatorias.length < 24) {
+                        var sucursalAleatoria = sucursales[Math.floor(Math.random() * sucursales.length)];
+        
+                        if (!sucursalesAleatorias.includes(sucursalAleatoria)) {
+                            sucursalesAleatorias.push(sucursalAleatoria);
+                            sucursalesAleatorias.push(sucursalAleatoria);
+                        }
+                    }
+        
+                    return sucursalesAleatorias;
+                }
+        
+                function descargarExcel() {
+                    var workbook = XLSX.utils.book_new();
+                    var worksheet = XLSX.utils.aoa_to_sheet([calendarioData]);
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Calendario");
+        
+                    // Descargar archivo Excel
+                    XLSX.writeFile(workbook, "calendario.xlsx");
+                }
+            </script>
+        </body>
+        </html>
